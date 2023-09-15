@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { MdKeyboardBackspace, MdShare } from "react-icons/md";
@@ -11,10 +11,10 @@ import Setting from "@/components/Event/SingleEvent/Setting";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
-const EventDetail = ({params}) => {
+const EventDetail = ({ params }) => {
   const router = useRouter();
   const { user } = useAuth();
-  const  eventId  = params.eventId;
+  const eventId = params.eventId;
   const [event, setEvent] = useState(null);
   const [activeLink, setActiveLink] = useState("summary");
   const [showComponent, setShowComponent] = useState({
@@ -46,7 +46,7 @@ const EventDetail = ({params}) => {
         const start = eventData.start.toDate();
         const end = eventData.end.toDate();
         const currentDate = new Date();
-        if (currentDate >= start ) {
+        if (currentDate >= start) {
           handleStartEvent();
         } else {
           setEventStarted(false);
@@ -93,6 +93,9 @@ const EventDetail = ({params}) => {
         } catch (error) {
           console.error("Error checking registration status: ", error);
         }
+      } else {
+        setEvent(null); // Reset event to null
+        alert("Event not found."); // Display an alert
       }
     };
 
@@ -183,7 +186,6 @@ const EventDetail = ({params}) => {
             </button>
           </div>
           <div className="flex items-center gap-4 ">
-         
             {eventStarted ? (
               !eventClose ? (
                 <div className="flex relative">
@@ -200,7 +202,9 @@ const EventDetail = ({params}) => {
                 </div>
               )
             ) : (
-              <p className="text-secondry text-sm sm:text-base">Event Starting Soon</p>
+              <p className="text-secondry text-sm sm:text-base">
+                Event Starting Soon
+              </p>
             )}
             <button
               onClick={handleShareClick}
@@ -302,8 +306,8 @@ const EventDetail = ({params}) => {
           {summary && (
             <Summery event={event} handleMenuClick={handleMenuClick} />
           )}
-          {schedule && <Schedule  event={event}/>}
-          {registration && <EventRegistration event={event}/>}
+          {schedule && <Schedule event={event} />}
+          {registration && <EventRegistration event={event} />}
           {booths && <Booth />}
           {settings && <Setting />}
         </div>
@@ -317,38 +321,5 @@ const EventDetail = ({params}) => {
     </div>
   );
 };
-
-export async function getServerSideProps(context) {
-  const eventId = context.params.eventId;
-
-  try {
-    const eventDocRef = doc(db, "events", eventId);
-    const docSnapshot = await getDoc(eventDocRef);
-
-    if (docSnapshot.exists()) {
-      const eventData = docSnapshot.data();
-      // Process eventData as needed
-      return {
-        props: {
-          event: eventData,
-        },
-      };
-    } else {
-      // Event not found, you can handle this as needed
-      return {
-        props: {
-          event: null,
-        },
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching event data: ", error);
-    return {
-      props: {
-        event: null,
-      },
-    };
-  }
-}
 
 export default EventDetail;
