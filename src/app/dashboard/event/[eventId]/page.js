@@ -46,8 +46,6 @@ const EventDetail = ({params}) => {
         const start = eventData.start.toDate();
         const end = eventData.end.toDate();
         const currentDate = new Date();
-
-
         if (currentDate >= start ) {
           handleStartEvent();
         } else {
@@ -319,21 +317,38 @@ const EventDetail = ({params}) => {
     </div>
   );
 };
-export async function getStaticPaths() {
-  const paths = [];
 
-  // Fetch the event IDs from your database or API and add them to the paths array
-  const eventsQuery = query(collection(db, "events"));
-  const eventsSnapshot = await getDocs(eventsQuery);
+export async function getServerSideProps(context) {
+  const eventId = context.params.eventId;
 
-  eventsSnapshot.forEach((doc) => {
-    paths.push({ params: { eventId: doc.id } });
-  });
+  try {
+    const eventDocRef = doc(db, "events", eventId);
+    const docSnapshot = await getDoc(eventDocRef);
 
-  return {
-    paths,
-    fallback: false, // or true if you want to enable fallback rendering
-  };
+    if (docSnapshot.exists()) {
+      const eventData = docSnapshot.data();
+      // Process eventData as needed
+      return {
+        props: {
+          event: eventData,
+        },
+      };
+    } else {
+      // Event not found, you can handle this as needed
+      return {
+        props: {
+          event: null,
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching event data: ", error);
+    return {
+      props: {
+        event: null,
+      },
+    };
+  }
 }
 
 export default EventDetail;
