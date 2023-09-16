@@ -10,6 +10,7 @@ import EventRegistration from "@/components/Event/SingleEvent/EventRegistration"
 import Setting from "@/components/Event/SingleEvent/Setting";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { fetchEventData, startEvent } from "@/lib/getEVentByID";
 
 const EventDetail = ({ params }) => {
   const router = useRouter();
@@ -36,34 +37,93 @@ const EventDetail = ({ params }) => {
     setEventStarted(true);
   };
 
-  useEffect(() => {
-    const fetchEventData = async () => {
-      const eventDocRef = doc(db, "events", eventId);
-      const docSnapshot = await getDoc(eventDocRef);
+  // useEffect(() => {
+  //   const fetchEventData = async () => {
+  //     const eventDocRef = doc(db, "events", eventId);
+  //     const docSnapshot = await getDoc(eventDocRef);
 
-      if (docSnapshot.exists()) {
-        const eventData = docSnapshot.data();
+  //     if (docSnapshot.exists()) {
+  //       const eventData = docSnapshot.data();
+  //       const start = eventData.start.toDate();
+  //       const end = eventData.end.toDate();
+  //       const currentDate = new Date();
+  //       if (currentDate >= start) {
+  //         handleStartEvent();
+  //       } else {
+  //         setEventStarted(false);
+  //       }
+
+  //       const startDate = start.toLocaleDateString();
+  //       const startTime = start.toLocaleTimeString([], {
+  //         hour: "2-digit",
+  //         minute: "2-digit",
+  //       });
+
+  //       const endDate = end.toLocaleDateString();
+  //       const endTime = end.toLocaleTimeString([], {  
+  //         hour: "2-digit",
+  //         minute: "2-digit",
+  //       });
+
+  //       const updatedEvent = {
+  //         ...eventData,
+  //         start: startDate,
+  //         startTime,
+  //         end: endDate,
+  //         endTime,
+  //       };
+
+  //       setEvent(updatedEvent);
+  //       const eventRef = doc(db, "events", eventId);
+  //       if (end < currentDate) {
+  //         setEventClose(true);
+  //       } else {
+  //         setEventClose(false);
+  //       }
+  //       try {
+  //         const eventDoc = await getDoc(eventRef);
+  //         if (eventDoc.exists()) {
+  //           const registeredUsers = eventDoc.data().registeredUsers || [];
+
+  //           if (registeredUsers.includes(user.uid)) {
+  //             setRegistered(true);
+  //           }
+  //         } else {
+  //           console.log("Event not found.");
+  //         }
+  //       } catch (error) {
+  //         console.error("Error checking registration status: ", error);
+  //       }
+  //     } else {
+  //       setEvent(null); // Reset event to null
+  //       alert("Event not found."); // Display an alert
+  //     }
+  //   };
+
+  //   fetchEventData();
+  // }, [eventId, setRegistered, setEvent, setEventStarted, handleStartEvent]);
+
+
+  useEffect(() => {
+    const fetchEventDataAndStartEvent = async () => {
+      try {
+        const eventData = await fetchEventData(eventId);
+        console.log(eventData)
         const start = eventData.start.toDate();
         const end = eventData.end.toDate();
-        const currentDate = new Date();
-        if (currentDate >= start) {
-          handleStartEvent();
-        } else {
-          setEventStarted(false);
-        }
-
-        const startDate = start.toLocaleDateString();
-        const startTime = start.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        const endDate = end.toLocaleDateString();
-        const endTime = end.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
+        // ... Rest of your data processing logic ...
+            const startDate = start.toLocaleDateString();
+              const startTime = start.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+      
+              const endDate = end.toLocaleDateString();
+              const endTime = end.toLocaleTimeString([], {  
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+        
         const updatedEvent = {
           ...eventData,
           start: startDate,
@@ -73,34 +133,26 @@ const EventDetail = ({ params }) => {
         };
 
         setEvent(updatedEvent);
-        const eventRef = doc(db, "events", eventId);
-        if (end < currentDate) {
-          setEventClose(true);
+        
+        // Check if the event has started and start it if necessary
+        const currentDate = new Date();
+        if (currentDate >= start) {
+          await startEvent(eventId);
+          setEventStarted(true);
         } else {
-          setEventClose(false);
+          setEventStarted(false);
         }
-        try {
-          const eventDoc = await getDoc(eventRef);
-          if (eventDoc.exists()) {
-            const registeredUsers = eventDoc.data().registeredUsers || [];
 
-            if (registeredUsers.includes(user.uid)) {
-              setRegistered(true);
-            }
-          } else {
-            console.log("Event not found.");
-          }
-        } catch (error) {
-          console.error("Error checking registration status: ", error);
-        }
-      } else {
-        setEvent(null); // Reset event to null
-        alert("Event not found."); // Display an alert
+        // ... Rest of your component logic ...
+      } catch (error) {
+        console.error("Error fetching event data:", error);
+        setEvent(null);
+        alert("Event not found.");
       }
     };
 
-    fetchEventData();
-  }, [eventId, setRegistered, setEvent, setEventStarted, handleStartEvent]);
+    fetchEventDataAndStartEvent();
+  }, [eventId, setEvent, setEventStarted]);
 
   const handleMenuClick = (link) => {
     setActiveLink(link);
