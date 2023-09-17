@@ -1,6 +1,6 @@
 "use client";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, getDocs } from "firebase/firestore";
 import { MdKeyboardBackspace, MdShare } from "react-icons/md";
 import { useState, useEffect, useCallback } from "react";
 import Summery from "@/components/Event/SingleEvent/Summery";
@@ -373,5 +373,6 @@ const EventDetail = ({ params }) => {
     </div>
   );
 };
+
 
 export default EventDetail;
